@@ -110,7 +110,6 @@ void bfs()
 
 int main()
 {
-	freopen("substring20.in", "r", stdin);
 	scanf("%d%d", &n, &c);
 	for (int i = 1; i <= n; i++)  
 		scanf("%d", &a[i]);  
