@@ -6,28 +6,55 @@ const int inf = ~0u >> 2;
 const int maxn = 5e5 + 10;
 const int end = 5e5;
 int n, m;
-void readint(int &x) {
-    bool flag = false;
-    char ch = getchar();
-    x = 0;
-    while (ch < '0' || ch > '9') {
-        if (ch == '-')
-            flag = true;
-        ch = getchar();
-    }
-    while (ch >= '0' && ch <= '9')
-        x = (x << 1) + (x << 3) + ch - '0', ch = getchar();
-    x = flag ? -x : x;
+
+template <typename T> inline T& relax(T &a, const T &b)
+{
+	return (a < b ? a = b : 1), a;
 }
-void readstring(char *s) {
-    char ch = getchar();
-    while (ch < 'A' || ch > 'Z')
-        ch = getchar();
-    while ((ch >= 'A' && ch <= 'Z') || ch == '-')
-        *(s++) = ch, ch = getchar();
-    *s = 0;
+
+inline char getc()
+{
+	static const int len = 1 << 15;
+	static char buf[len], *s, *t;
+	if (s == t)
+	
+	{
+		t = (s = buf) + fread(buf, 1, len, stdin);
+		if (s == t)
+			return EOF;
+	}
+	return *s++;
 }
-struct Splay {
+
+inline void read(register int &x)
+{
+	bool flag = false;
+	char ch = getc();
+	x=0;
+	while(ch < '0' || ch > '9')
+	
+	{
+		if(ch == '-')
+			flag = true;
+		ch = getc();
+	}
+	while(ch >= '0' && ch <= '9')
+		x = (x << 1) + (x << 3) + ch - '0', ch = getc();
+	x = flag ? -x : x;
+}
+
+inline void read(char *s)
+{
+	char ch = getc();
+	while (ch < 'A' || ch > 'Z')
+		ch = getc();
+	while ((ch >= 'A' && ch <= 'Z') || ch == '-')
+		*s++ = ch, ch = getc();
+	*s = 0;
+}
+
+struct Splay 
+{
     Splay *ls, *rs, *fa;
     int size, val;
     bool rev;
@@ -42,72 +69,105 @@ struct Splay {
     void *operator new(size_t);
     void del();
 };
-struct queue {
+
+struct queue 
+{
     Splay *a[maxn];
     int l, r;
-    queue() { l = 1, r = 0; }
-    bool empty() { return l > r; }
-    Splay *front() { return a[(l++ - 1) % end + 1]; }
-    void push(Splay *x) { a[(++r - 1) % end + 1] = x; }
+    queue() 
+	{ 
+		l = 1, r = 0; 
+	}
+    bool empty() 
+	{ 
+		return l > r; 
+	}
+    Splay *front() 
+	{ 
+		return a[(l++ - 1) % end + 1]; 
+	}
+    void push(Splay *x) 
+	{ 
+		a[(++r - 1) % end + 1] = x; 
+	}
 } q;
+
 Splay *null = new Splay, *root = null, Tdata[maxn];
-Splay::Splay() {
+
+Splay::Splay() 
+{
     fa = ls = rs = this;
     size = 0;
     val = lmx = rmx = mx = -inf;
     sum = 0;
 }
-void *Splay::operator new(size_t) {
+
+void *Splay::operator new(size_t) 
+{
     static Splay *p = Tdata;
     if (!q.empty())
         return q.front();
     else
         return p++;
 }
-void Splay::del() {
+
+void Splay::del() 
+{
     if (this == null)
         return;
     ls->del();
     rs->del();
     q.push(this);
 }
-Splay::Splay(int x) {
+
+Splay::Splay(int x) 
+{
     fa = ls = rs = null;
     val = lmx = rmx = mx = sum = x;
     size = 1;
     rev = false;
     change = inf;
 }
-void Splay::update() {
+
+void Splay::update() 
+{
     size = ls->size + rs->size + 1;
     mx = lmx = rmx = sum = val;
-    mx = max(max(ls->mx, mx), ls->rmx + lmx);
+	relax(relax(mx, ls->mx), ls->rmx + lmx);
     lmx = max(ls->lmx, ls->sum + lmx);
-    rmx = max(rmx, sum + ls->rmx);
+	relax(rmx, sum + ls->rmx);
     sum += ls->sum;
-    mx = max(max(mx, rs->mx), rmx + rs->lmx);
-    lmx = max(lmx, sum + rs->lmx);
+	relax(relax(mx, rs->mx), rmx + rs->lmx);
+	relax(lmx, sum + rs->lmx);
     rmx = max(rs->rmx, rs->sum + rmx);
     sum += rs->sum;
 }
-void Splay::push_down() {
-    if (change ^ inf) {
+
+void Splay::push_down() 
+{
+    if (change ^ inf) 
+	{
         ls->same(change);
         rs->same(change);
         change = inf;
     }
-    if (rev) {
+    if (rev) 
+	{
         ls->reverse();
         rs->reverse();
         rev = 0;
     }
 }
-void Splay::reverse() {
+
+void Splay::reverse() 
+{
     swap(ls, rs);
     swap(lmx, rmx);
     rev ^= 1;
 }
-void Splay::same(int x) {
+
+void Splay::same(int x) 
+{
     sum = size * x;
     val = change = x;
     if (x > 0)
@@ -115,7 +175,9 @@ void Splay::same(int x) {
     else
         lmx = rmx = mx = x;
 }
-void zig(Splay *x) {
+
+void zig(Splay *x) 
+{
     Splay *y = x->fa;
     y->push_down();
     x->push_down();
@@ -132,7 +194,9 @@ void zig(Splay *x) {
     if (root == y)
         root = x;
 }
-void zag(Splay *x) {
+
+void zag(Splay *x) 
+{
     Splay *y = x->fa;
     y->push_down();
     x->push_down();
@@ -149,25 +213,31 @@ void zag(Splay *x) {
     if (root == y)
         root = x;
 }
-void splay(Splay *x, Splay *t) {
+
+void splay(Splay *x, Splay *t) 
+{
     Splay *y, *z;
     x->push_down();
-    while (true) {
+    while (true) 
+	{
         y = x->fa;
         z = y->fa;
         if (y == t)
             break;
-        else if (z == t) {
+        else if (z == t) 
+		{
             if (x == y->ls)
                 zig(x);
             else
                 zag(x);
             break;
-        } else if (x == y->ls) {
+        } else if (x == y->ls) 
+		{
             if (y == z->ls)
                 zig(y);
             zig(x);
-        } else {
+        } else 
+		{
             if (y == z->rs)
                 zag(y);
             zag(x);
@@ -175,12 +245,16 @@ void splay(Splay *x, Splay *t) {
     }
     x->update();
 }
-void find(Splay *x, int y, Splay *z) {
-    while (true) {
+
+void find(Splay *x, int y, Splay *z) 
+{
+    while (true) 
+	{
         x->push_down();
         if (y <= x->ls->size)
             x = x->ls;
-        else {
+        else 
+		{
             y -= x->ls->size;
             if (y == 1)
                 break;
@@ -191,8 +265,11 @@ void find(Splay *x, int y, Splay *z) {
     x->push_down();
     splay(x, z);
 }
+
 int a[maxn];
-Splay *build(int l, int r) {
+
+Splay *build(int l, int r) 
+{
     if (l > r)
         return null;
     int mid = l + r >> 1;
@@ -203,12 +280,15 @@ Splay *build(int l, int r) {
     x->update();
     return x;
 }
+
 int pos, tot, c;
-void insert() {
-    readint(pos);
-    readint(tot);
+
+void insert() 
+{
+    read(pos);
+    read(tot);
     for (int i = 1; i <= tot; i++)
-        readint(a[i]);
+        read(a[i]);
     find(root, pos + 1, null);
     find(root, pos + 2, root);
     root->rs->ls = build(1, tot);
@@ -216,9 +296,11 @@ void insert() {
     root->rs->update();
     root->update();
 }
-void del() {
-    readint(pos);
-    readint(tot);
+
+void del() 
+{
+    read(pos);
+    read(tot);
     find(root, pos, null);
     find(root, pos + tot + 1, root);
     root->rs->ls->del();
@@ -226,10 +308,12 @@ void del() {
     root->rs->update();
     root->update();
 }
-void make_same() {
-    readint(pos);
-    readint(tot);
-    readint(c);
+
+void make_same() 
+{
+    read(pos);
+    read(tot);
+    read(c);
     find(root, pos, null);
     find(root, pos + tot + 1, root);
     root->rs->ls->same(c);
@@ -237,21 +321,27 @@ void make_same() {
     root->rs->update();
     root->update();
 }
-void reverse() {
-    readint(pos);
-    readint(tot);
+
+void reverse() 
+{
+    read(pos);
+    read(tot);
     find(root, pos, null);
     find(root, pos + tot + 1, root);
     root->rs->ls->reverse();
 }
-void get_sum() {
-    readint(pos);
-    readint(tot);
+
+void get_sum() 
+{
+    read(pos);
+    read(tot);
     find(root, pos, null);
     find(root, pos + tot + 1, root);
     printf("%d\n", root->rs->ls->sum);
 }
-void max_sum() {
+
+void max_sum() 
+{
     find(root, 1, null);
     find(root, root->size, root);
     root->push_down();
@@ -260,21 +350,26 @@ void max_sum() {
     root->update();
     printf("%d\n", root->rs->ls->mx);
 }
-int main() {
-    readint(n);
-    readint(m);
+
+int main() 
+{
+	freopen("sequence.in", "r", stdin);
+	freopen("sequence.out", "w", stdout);
+    read(n);
+    read(m);
     root = new Splay(0);
     root->rs = new Splay(0);
     for (int i = 1; i <= n; i++)
-        readint(a[i]);
+        read(a[i]);
     root->rs->ls = build(1, n);
     root->rs->ls->fa = root->rs;
     root->rs->update();
     root->rs->fa = root;
     root->update();
-    for (int i = 1; i <= m; i++) {
+    for (int i = 1; i <= m; i++) 
+	{
         char s[15];
-        readstring(s);
+        read(s);
         if (!strcmp(s, "INSERT"))
             insert();
         else if (!strcmp(s, "DELETE"))

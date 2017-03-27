@@ -7,32 +7,51 @@
 using namespace std;
 
 const int maxn = 500010;
-const int size = 2200;
+const int size = 1000;
 const int maxb = maxn / size * 3;
 const int inf = 1e9;
 
-void read(int &x)
+template <typename T> inline T& relax(T& a, const T &b)
+{
+	return (a < b ? a = b : 1), a;
+}
+
+inline char getc()
+{
+	static const int len = 1 << 15;
+	static char buf[len], *s, *t;
+	if (s == t)
+	{
+		t = (s = buf) + fread(buf, 1, len, stdin);
+		if (s == t)
+			return EOF;
+	}
+	return *s++;
+}
+
+inline void read(register int &x)
 {
 	bool flag = false;
-	char ch = getchar();
+	char ch = getc();
 	x=0;
 	while(ch < '0' || ch > '9')
 	{
-		if(ch == '-')
+		if (ch == '-')
 			flag = true;
-		ch = getchar();
+		ch = getc();
 	}
 	while(ch >= '0' && ch <= '9')
-		x = (x << 1) + (x << 3) + ch - '0', ch = getchar();
+		x = (x << 1) + (x << 3) + ch - '0', ch = getc();
 	x = flag ? -x : x;
 }
-void read(char *s)
+
+inline void read(char *s)
 {
-	char ch = getchar();
+	char ch = getc();
 	while (ch < 'A' || ch > 'Z')
-		ch = getchar();
+		ch = getc();
 	while ((ch >= 'A' && ch <= 'Z') || ch == '-')
-		*s++ = ch, ch = getchar();
+		*s++ = ch, ch = getc();
 	*s = 0;
 }
 
@@ -66,7 +85,6 @@ void* block :: operator new(size_t)
 		g = Q.front(), Q.pop();
 	else
 		g = p++;
-	memset(g, 0, sizeof(block));
 	return g;
 }
 void block :: pushdown()
@@ -93,8 +111,8 @@ void block :: update()
 	smx[0] = smx[1] = mx = -inf;
 	for (int i = 0; i < len; i++)
 	{
-		mx = max(max(mx, a[i]), smx[1] + a[i]);
-		smx[0] = max(smx[0], sum + a[i]);
+		relax(relax(mx, a[i]), smx[1] + a[i]);
+		relax(smx[0], sum + a[i]);
 		smx[1] = max(a[i], smx[1] + a[i]);
 		sum += a[i];
 	}
@@ -104,8 +122,8 @@ void merge(block *x, block *y)
 {
 	x->pushdown();
 	y->pushdown();
-	x->mx = max(max(x->mx, y->mx), x->smx[1] + y->smx[0]);
-	x->smx[0] = max(x->smx[0], x->sum + y->smx[0]);
+	relax(relax(x->mx, y->mx), x->smx[1] + y->smx[0]);
+	relax(x->smx[0], x->sum + y->smx[0]);
 	x->smx[1] = max(y->smx[1], x->smx[1] + y->sum);
 	x->sum += y->sum;
 	memcpy(x->a + x->len, y->a, sizeof(int) * y->len);
@@ -253,8 +271,8 @@ int maxsum()
 	int mx = -inf, smx[2] = {-inf, -inf}, sum = 0;
 	for (block *p = root; p; p = p->next)
 	{
-		mx = max(max(mx, p->mx), smx[1] + p->smx[p->rev]);
-		smx[0] = max(smx[0], sum + p->smx[p->rev]);
+		relax(relax(mx, p->mx), smx[1] + p->smx[p->rev]);
+		relax(smx[0], sum + p->smx[p->rev]);
 		smx[1] = max(p->smx[p->rev ^ 1], smx[1] + p->sum);
 		sum += p->sum;
 	}
@@ -265,6 +283,8 @@ int a[maxn];
 
 int main()
 {
+	freopen("sequence.in", "r", stdin);
+	freopen("sequence.out", "w", stdout);
 	int n, m;
 	read(n);
 	read(m);
@@ -276,7 +296,7 @@ int main()
 		static char opt[10];
 		static int pos, tot, v;
 		read(opt);
-        if(!strcmp(opt, "INSERT"))
+        if (opt[0] == 'I')
 		{
 			read(pos);
 			read(tot);
@@ -284,24 +304,26 @@ int main()
 				read(a[i]);
             insert(pos, tot, a);
 		}
-		else if(!strcmp(opt, "DELETE"))
+		else if (opt[0] == 'D')
 		{
 			read(pos);
 			read(tot);
             erase(pos, tot);
 		}
-		else if(!strcmp(opt, "MAKE-SAME"))
+		else if (opt[4] == '-')
 		{
-			scanf("%d%d%d", &pos, &tot, &v);
+			read(pos);
+			read(tot);
+			read(v);
             makesame(pos, tot, v);
 		}
-		else if(!strcmp(opt, "REVERSE"))
+		else if (opt[0] == 'R')
 		{
 			read(pos);
 			read(tot);
             reverse(pos, tot);
 		}
-		else if(!strcmp(opt, "GET-SUM"))
+		else if (opt[0] == 'G')
 		{
             read(pos);
 			read(tot);
