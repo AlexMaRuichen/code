@@ -1,11 +1,10 @@
 from selenium import webdriver
 import sys
 
-
 reload(sys) 
 sys.setdefaultencoding('utf-8') 
 
-browser = webdriver.Chrome()
+browser = webdriver.Firefox()
 browser.get('http://www.lydsy.com/JudgeOnline/loginpage.php')
 username = browser.find_element_by_xpath("//input[@name='user_id']")
 username.clear()
