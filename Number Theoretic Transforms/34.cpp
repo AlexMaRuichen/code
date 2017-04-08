@@ -21,7 +21,7 @@ char getc()
         if (s == t)
             return EOF;
     }
-    return *(s++);
+    return *s++;
 }
 
 void read(register int &x) 
@@ -53,8 +53,7 @@ void DFT(int *a, int len, int type)
 	{
         if (i < t)
             swap(a[i], a[t]);
-        for (int j = len >> 1; (t ^= j) < j; j >>= 1)
-            ;
+        for (int j = len >> 1; (t ^= j) < j; j >>= 1);
     }
     for (int i = 2; i <= len; i <<= 1) 
 	{
@@ -98,8 +97,7 @@ int main()
     for (int i = 0; i <= m; i++)
         read(b[i]);
     int len;
-    for (len = 1; len <= n + m; len <<= 1)
-        ;
+    for (len = 1; len <= n + m; len <<= 1);
     NTT(a, b, c, len);
     for (int i = 0; i <= n + m; i++)
         printf("%d ", c[i]);

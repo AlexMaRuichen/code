@@ -55,7 +55,7 @@ void zag(Splay *x)
 	x->fa=y->fa;
 	if(y==y->fa->ls)
 		y->fa->ls=x;
-	else if(y==x->fa->rs)
+	else if(y==y->fa->rs)
 		y->fa->rs=x;
 	y->fa=x;
 }
