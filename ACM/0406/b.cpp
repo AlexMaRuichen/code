@@ -1,114 +1,102 @@
-#include <stdio.h>
-#include <string.h>
-
 #include <algorithm>
-#include <numeric>
-
-template <typename T> inline bool tense(T &a, const T &b)
-{
-	return b < a ? a = b, true : false;
-}
-
-template <typename T> inline bool relax(T &a, const T &b)
-{
-	return a < b ? a = b, true : false;
-}
-
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
 using namespace std;
 
-const int maxn = 400010;
+const int maxn = 2000010;
 
-struct data
+struct node 
 {
-	int dig, id;
-}d[maxn];
+    int id;
+    int dig;
+} d[maxn];
 
-bool operator < (const data &a, const data &b)
+bool cmp1(const node &a, const node &b) 
 {
-	return a.dig ^ b.dig ? a.dig < b.dig : a.id < b.id;
+    return a.dig ^ b.dig ? a.dig < b.dig : a.id < b.id;
 }
 
-int a[maxn];
-int s[maxn];
-int sa[maxn];
-int cnt[maxn];
-int m[2][maxn];
-int *id, *oid;
+int wa[maxn], wb[maxn], wv[maxn], ws[maxn];
 
-void Suffix_Array(int n, int charset)
+inline int cmp(int *r, int a, int b, int l) 
 {
-	id = m[0];
-	oid = m[1];
-	memset(sa, 0, sizeof(sa));
-	memset(cnt, 0, sizeof(cnt));
-	memset(m, 0, sizeof(m));
-	for (int i = 1; i <= n; i++)
-		++cnt[s[i]];
-	partial_sum(cnt + 1, cnt + charset + 1, cnt + 1);
-	for (int i = 1, t = 0; i <= charset; i++)
-		if (cnt[i])
-			id[i] = ++t;
-	for (int i = 1; i <= n; i++)
-		oid[i] = id[s[i]], sa[cnt[s[i]]--] = i;
-	for (int k = 1, cur = 0; cur ^ n; k <<= 1, swap(id, oid))
+    return r[a] == r[b] && r[a + l] == r[b + l];
+}
+
+void da(int *r, int *sa, int n, int m) 
+{
+    int i, j, p, *x = wa, *y = wb, *t;
+    for (i = 0; i < m; i++)
+        ws[i] = 0;
+    for (i = 0; i < n; i++)
+        ws[x[i] = r[i]]++;
+    for (i = 1; i < m; i++)
+        ws[i] += ws[i - 1];
+    for (i = n - 1; i >= 0; i--)
+        sa[--ws[x[i]]] = i;
+    for (j = 1, p = 1; p < n; j *= 2, m = p) 
 	{
-		memset(cnt, 0, sizeof(int) * (n + 1));
-		for (int i = 1; i <= n; i++)
-			++cnt[oid[i]];
-		partial_sum(cnt + 1, cnt + n + 1, cnt + 1);
-		for (int i = n; i; i--)
-			if (sa[i] > k)
-				id[sa[i] - k] = cnt[oid[sa[i] - k]]--;
-		for (int i = 1; i <= n; i++)
-			id[n - i + 1] = cnt[oid[n - i + 1]]--;
-		for (int i = 1; i <= n; i++)
-			sa[id[i]] = i;
-		cur = 0;
-		for (int i = 1; i <= n; i++)
-			id[sa[i]] = (sa[i] + k > n || sa[i - 1] + k > n ||
-						 oid[sa[i]] ^ oid[sa[i - 1]] ||
-						 oid[sa[i] + k] ^ oid[sa[i - 1] + k]) ?
-						 ++cur : 
-						 cur;
-	}
+        for (p = 0, i = n - j; i < n; i++)
+            y[p++] = i;
+        for (i = 0; i < n; i++)
+            if (sa[i] >= j)
+                y[p++] = sa[i] - j;
+        for (i = 0; i < n; i++)
+            wv[i] = x[y[i]];
+        for (i = 0; i < m; i++)
+            ws[i] = 0;
+        for (i = 0; i < n; i++)
+            ws[wv[i]]++;
+        for (i = 1; i < m; i++)
+            ws[i] += ws[i - 1];
+        for (i = n - 1; i >= 0; i--)
+            sa[--ws[wv[i]]] = y[i];
+        for (t = x, x = y, y = t, p = 1, x[sa[0]] = 0, i = 1; i < n; i++)
+            x[sa[i]] = cmp(y, sa[i], sa[i - 1], j) ? p - 1 : p++;
+    }
 }
 
-int main()
+int r[maxn], sa[maxn];
+
+int main() 
 {
-	int n, nn;
-	scanf("%d", &n);
-	nn = n;
-	for (int i = 1; i <= n; i++)
-		scanf("%d", &d[i].dig), d[i].id = i;
-	sort(d + 1, d + n + 1);
-	for (int i = 1; i <= n; i++)
-        s[d[i].id] = (i ^ 1 && d[i].dig == d[i - 1].dig) ? s[d[i - 1].id] : i;
-	reverse(s + 1, s + n + 1);
-	Suffix_Array(n, nn);
-	int id = 1;
-	for (int i = 1; i <= n; i++)
-		printf("%d ", d[s[i]].dig);
-	puts("");
-	while (sa[id] <= 2 && id <= n)
-		++id;
-	for (int i = sa[id]; i <= n; i++)
-		printf("%d\n", d[s[i]].dig);
-	puts("");
-	n = sa[id] - 1;
-	for (int i = 1; i <= n; i++)
-		s[i + n] = s[i];
-	for (int i = 1; i <= (n << 1); i++)
-		printf("%d ", d[s[i]].dig);
-	puts("");
-	s[n << 1 | 1] = 0;
-	Suffix_Array(n << 1, nn);
-	id = 1;
-	while (sa[id] <= 1 || sa[id] > n)
-		++id;
-	for (int i = sa[id]; i <= n; i++)
-		printf("%d\n", d[s[i]].dig);
-	puts("");
-	for (int i = 1; i < sa[id]; i++)
-		printf("%d\n", d[s[i]].dig);
-	puts("");
+    int n, i, j;
+    scanf("%d", &n);
+    for (i = n - 1; i >= 0; i--) 
+	{
+        scanf("%d", &d[i].dig);
+        d[i].id = i;
+    }
+    sort(d, d + n, cmp1);
+    int num = 1;
+    for (i = 0; i < n; i++) 
+	{
+        if (i && d[i].dig == d[i - 1].dig) 
+		{
+            r[d[i].id] = r[d[i - 1].id];
+            continue;
+        }
+        r[d[i].id] = i + 1;
+    }
+    r[n] = 0;
+    da(r, sa, n + 1, n + 10);
+    for (i = 1; i <= n && sa[i] <= 1; i++)
+        ;
+    int tmp = sa[i];
+    for (j = tmp; j < n; j++)
+        printf("%d\n", d[r[j] - 1].dig);
+    for (j = 0; j < tmp; j++)
+        r[tmp + j] = r[j];
+    tmp *= 2;
+    r[tmp] = 0;
+    da(r, sa, tmp + 1, n + 10);
+    for (i = 1; i < tmp && (!sa[i] || sa[i] >= tmp / 2); i++)
+        ;
+    int k = sa[i];
+    for (j = k; j < tmp / 2; j++)
+        printf("%d\n", d[r[j] - 1].dig);
+    for (i = 0; i < k; i++)
+        printf("%d\n", d[r[i] - 1].dig);
+    return 0;
 }

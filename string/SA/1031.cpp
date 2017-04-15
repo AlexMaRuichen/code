@@ -1,60 +1,83 @@
-#include <algorithm>
-#include <ctype.h>
-#include <numeric>
 #include <stdio.h>
 #include <string.h>
+#include <ctype.h>
+
+#include <algorithm>
+
 using namespace std;
+
 const int maxn = 200010;
+const int len = 100000;
+const int charset = 256;
+
+int n;
 char s[maxn];
+int Rank[maxn];
+int height[maxn];
 int sa[maxn];
-void init(int n) 
+
+bool equal(int *y, int k, int i, int j)
 {
-    static int cnt[maxn];
-    static int m[2][maxn];
-    static int *id = m[0], *oid = m[1];
-    for (int i = 1; i <= n; i++)
-        ++cnt[s[i]];
-    partial_sum(cnt + 1, cnt + 256, cnt + 1);
-    for (int i = 1, t = 0; i <= 255; i++)
-        if (cnt[i])
-            id[i] = ++t;
-    for (int i = 1; i <= n; i++)
-        oid[i] = id[s[i]], sa[cnt[s[i]]--] = i;
-    for (int k = 1, cur = 0; cur ^ n; k <<= 1, swap(id, oid)) 
-	{
-        memset(cnt, 0, sizeof(int) * (n + 1));
-        for (int i = 1; i <= n; i++)
-            ++cnt[oid[i]];
-        partial_sum(cnt + 1, cnt + n + 1, cnt + 1);
-        for (int i = n; i; i--)
-            if (sa[i] > k)
-                id[sa[i] - k] = cnt[oid[sa[i] - k]]--;
-        for (int i = 1; i <= k; i++)
-            id[n - i + 1] = cnt[oid[n - i + 1]]--;
-        for (int i = 1; i <= n; i++)
-            sa[id[i]] = i;
-        cur = 0;
-        for (int i = 1; i <= n; i++)
-            id[sa[i]] = (sa[i] + k > n || sa[i - 1] + k > n ||
-                         oid[sa[i]] ^ oid[sa[i - 1]] ||
-                         oid[sa[i] + k] ^ oid[sa[i - 1] + k])
-                            ? ++cur
-                            : cur;
-    }
+	return y[i] == y[j] && (i + k < n ? y[i + k] : -1) == (j + k < n ? y[j + k] : -1);
 }
-int main() 
+
+void Suffix_Array()
 {
-    fread(s + 1, 1, 100000, stdin);
-    int n = 0;
-    while (isprint(s[++n]))
-        ;
-    --n;
-    for (int i = 1; i <= n; i++)
-        s[i + n] = s[i];
-    n <<= 1;
-    init(n);
-    for (int i = 1; i <= n; i++)
-        if (sa[i] <= (n >> 1))
-            putchar(s[sa[i] + (n >> 1) - 1]);
-    puts("");
+	int *x = Rank;
+	int *y = height;
+	static int w[maxn];
+	for (int i = 0; i < n; i++)
+		++w[s[i]];
+	for (int i = 1; i < charset; i++)
+		w[i] += w[i - 1];
+	for (int i = n - 1; ~i; i--)
+		sa[--w[s[i]]] = i;
+	int cnt = 0;
+	for (int i = 0; i < n; i++)
+	{
+		if (!i || s[sa[i]] ^ s[sa[i - 1]])
+			++cnt;
+		y[sa[i]] = cnt - 1;
+	}
+	for (int k = 1; cnt < n; k <<= 1, swap(x, y))
+	{
+		int len = 0;
+		for (int i = n - k; i < n; i++)
+			x[len++] = i;
+		for (int i = 0; i < n; i++)
+			if (sa[i] >= k)
+				x[len++] = sa[i] - k;
+		memset(w, 0, sizeof(int) * cnt);
+		for (int i = 0; i < n; i++)
+			++w[y[x[i]]];
+		for (int i = 1; i < cnt; i++)
+			w[i] += w[i - 1];
+		for (int i = n - 1; ~i; i--)
+			sa[--w[y[x[i]]]] = x[i];
+		cnt = 0;
+		for (int i = 0; i < n; i++)
+		{
+			if (i == 0 || !equal(y, k, sa[i], sa[i - 1]))
+				++cnt;
+			x[sa[i]] = cnt - 1;
+		}
+	}
+}
+
+int main()
+{
+	n = fread(s, 1, len, stdin);
+	while (!isprint(s[n - 1]))
+		--n;
+	memcpy(s + n, s, sizeof(char) * n);
+	n <<= 1;
+//	printf("%s %d\n", s, n);
+	Suffix_Array();
+/*	for (int i = 0; i < n; i++)
+		printf("%d ", sa[i]);
+	puts("");*/
+	for (int i = 0; i < n; i++)
+		if (sa[i] < (n >> 1))
+			putchar(s[sa[i] + (n >> 1) - 1]);
+	putchar('\n');
 }
